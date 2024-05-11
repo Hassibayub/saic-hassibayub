@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "saic-hassibayub"
+version = "0.1.0"
+description = ""
+authors = ["Muhammad Haseeb <miltech.haseeb@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+llama-index = "^0.10.36"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

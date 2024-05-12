@@ -2,6 +2,7 @@ from src.agent import load_and_index, repl_chat
 
 
 def test_index():
+    """Test the index and retrieval of the database."""
     db = load_and_index()
 
     ret = db.as_retriever(similarity_top_k=1)
@@ -15,6 +16,7 @@ def test_index():
 
 
 def test_agent():
+    """Test the agent in REPL mode."""
     repl_chat()
 
 

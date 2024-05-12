@@ -3,7 +3,7 @@ import logging
 from colorama import Fore, Style
 
 
-def setup_logger():
+def setup_logger() -> logging.Logger:
     logger = logging.getLogger("app")
     logger.setLevel(logging.DEBUG)
 
@@ -19,12 +19,12 @@ def setup_logger():
     return logger
 
 
-def write(text: str, role: str = "user", agent: str = "X"):
+def write(text: str, role: str = "user", agent: str = "X") -> None:
     if role == "assistant":
         prGreen(f"Agent {agent}: {text}")
     else:
         print(f"User: {text}")
 
 
-def prGreen(skk):
+def prGreen(skk: str) -> None:
     print(f"{Fore.GREEN}{Style.BRIGHT}{skk}{Style.RESET_ALL}")

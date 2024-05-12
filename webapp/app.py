@@ -1,4 +1,5 @@
 import streamlit as st
+from llama_index.agent.openai import OpenAIAgent
 
 from src.agent import chat_engine
 
@@ -6,7 +7,7 @@ st.title("AI Car Salesperson 🤖")
 
 
 @st.cache_resource
-def fetch_engine():
+def fetch_engine() -> dict[str, OpenAIAgent]:
     return chat_engine(verbose=False)
 
 
@@ -16,7 +17,7 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 
 if "passed" not in st.session_state:
-    st.session_state.passed = 0
+    st.session_state.passed = 0  # 0 for agentX and 1 for agentY
 
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
@@ -25,6 +26,7 @@ for message in st.session_state.messages:
 
 @st.cache_resource
 def add_first_message():
+    """Add first message to the chat."""
     first_message = "Hello, How can I help you selecting car. \
     Can you let me know the preference of car you are looking for?"
     st.chat_message("assistant").markdown(first_message)
@@ -51,6 +53,7 @@ def main():
             response = "Agent (Y): Thank you for your time. Your car has been booked. \
             We will send you an email with the details."
 
+        # Check if user has passed to agentY, and if so, check for the </PASS> token
         if "</PASS>" in str(response):
             response = "Hello I am agent Y. I am here to help you with purchase. May I know your name?"
             agents["agentY"].chat_history.append(agents["agentX"].chat_history[-3])

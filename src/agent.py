@@ -29,9 +29,11 @@ openai.api_key = os.getenv("API_KEY")
 
 Settings.chunk_size = 512
 Settings.chunk_overlap = 64
-Settings.llm = OpenAI(model="gpt-3.5-turbo", temperature=0.1)
 Settings.embed_model = OpenAIEmbedding(model="text-embedding-3-small")
 Settings.text_splitter = MarkdownNodeParser()
+
+llm_agentX = OpenAI(temperature=0.1, model="gpt-3.5-turbo")
+llm_agentY = OpenAI(temperature=0.1, model="gpt-4")
 
 
 def load_and_index():
@@ -98,11 +100,13 @@ def chat_engine(verbose: bool = False):
     agentX = OpenAIAgent.from_tools([query_engine_tool],
                                     system_prompt=SYSTEM_AGENT_X,
                                     chat_history=custom_chat_history,
+                                    llm=llm_agentX,
                                     verbose=verbose
                                     )
 
     agentY = OpenAIAgent.from_tools([query_engine_tool, send_email_tool],
                                     system_prompt=SYSTEM_AGENT_Y,
+                                    llm=llm_agentY,
                                     verbose=verbose
                                     )
 

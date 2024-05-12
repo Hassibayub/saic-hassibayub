@@ -18,9 +18,8 @@ from llama_index.embeddings.openai import OpenAIEmbedding
 from llama_index.llms.openai import OpenAI
 from llama_index.vector_stores.chroma import ChromaVectorStore
 
-from .common import setup_logger
-from .common import write
-from .consts import DATA_DIR, CHROMA_DB_PATH, SYSTEM_AGENT_X, SYSTEM_AGENT_Y
+from .common import setup_logger, write
+from .consts import DATA_DIR, CHROMA_DB_PATH, SYSTEM_AGENT_X, SYSTEM_AGENT_Y, TOOL_DESCRIPTION
 
 logger = setup_logger()
 
@@ -30,7 +29,7 @@ openai.api_key = os.getenv("API_KEY")
 
 Settings.chunk_size = 512
 Settings.chunk_overlap = 64
-Settings.llm = OpenAI(model="gpt-3.5-turbo", temperature=0.0)
+Settings.llm = OpenAI(model="gpt-3.5-turbo", temperature=0.1)
 Settings.embed_model = OpenAIEmbedding(model="text-embedding-3-small")
 Settings.text_splitter = MarkdownNodeParser()
 
@@ -68,13 +67,12 @@ def send_email(name: str, email: str):
 
 def chat_engine(verbose: bool = False):
     index = load_and_index()
+
     query_tool = QueryEngineTool(
         query_engine=index.as_query_engine(),
         metadata=ToolMetadata(
-            name=f"Car_details_tool",
-            description=(
-                "This tool provides information about cars based on the user's query."
-            ),
+            name=f"car_details_and_information_provider_tool",
+            description=TOOL_DESCRIPTION,
         )
     )
 
@@ -84,17 +82,16 @@ def chat_engine(verbose: bool = False):
     query_engine_tool = QueryEngineTool(
         query_engine=query_engine,
         metadata=ToolMetadata(
-            name="query_engine_tool",
-            description=(
-                "This tool provides information about cars based on the user's query."
-            ),
+            name="car_details_and_information_provider",
+            description=TOOL_DESCRIPTION,
         )
     )
 
     custom_chat_history = [
         ChatMessage(
             role=MessageRole.ASSISTANT,
-            content="Hello, How can I help you selecting car. Can you let me know the preference of car you are looking for?",
+            content="Hello, How can I help you selecting car. Can you let me know the "
+                    "preference of car you are looking for?",
         ),
     ]
 
@@ -119,14 +116,13 @@ def chat_engine(verbose: bool = False):
 
 def repl_chat():
     agents = chat_engine(verbose=False)
-    write(f"Hello, How can I help you selecting car. Can you let me know the preference of car you are looking for?",
+    write(f"Hello, How can I help you selecting car. Can you let me know "
+          f"the preference of car you are looking for?",
           role="assistant")
 
     passed = 0
     while True:
         prompt = input(f"{Fore.WHITE}You > {Style.RESET_ALL}")
-        if prompt == "exit":
-            break
 
         if passed == 0:
             response = agents["agentX"].chat(prompt)
@@ -143,9 +139,11 @@ def repl_chat():
                 role="assistant")
             sys.exit(0)
 
-        if "</PASS>" in str(response):
+        if "</PASS>" in str(response) or "<PASS>" in str(response):
             write(f"Hello I am agent Y. I am here to help you with purchase. May I know your name?", role="assistant",
                   agent="Y")
+            agents["agentY"].chat_history.append(agents["agentX"].chat_history[-3])
+            agents["agentY"].chat_history.append(agents["agentX"].chat_history[-2])
             agents["agentY"].chat_history.append(agents["agentX"].chat_history[-1])
             passed = 1
             continue
